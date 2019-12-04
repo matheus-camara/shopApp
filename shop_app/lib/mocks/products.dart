@@ -1,6 +1,6 @@
-import 'package:shop_app/domain/product.dart';
+import 'package:shop_app/providers/product.dart';
 
-final PRODUCTS = [
+final productsData = [
   Product(
     id: 1,
     title: 'Red Shirt',
