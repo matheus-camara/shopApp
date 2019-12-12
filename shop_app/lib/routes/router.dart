@@ -1,8 +1,11 @@
 import 'package:flutter/widgets.dart';
+import 'package:shop_app/ui/screens/cart.dart';
+import 'package:shop_app/ui/screens/orders.dart';
 import 'package:shop_app/ui/screens/product_detail.dart';
+import 'package:shop_app/ui/screens/products_overview.dart';
 
-class Router {
-  static final Map<String, Widget Function(BuildContext)> routes = {
-    ProductDetailScreen.routeName: (ctx) => ProductDetailScreen()
-  };
-}
+final Map<String, Widget Function(BuildContext)> appRoutes = {
+  ProductDetailScreen.routeName: (ctx) => ProductDetailScreen(),
+  CartScreen.routeName: (ctx) => CartScreen(),
+  OrdersScreen.routeName: (ctx) => OrdersScreen()
+};

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
 
-class Constants {
-  static const appName = Text("MyShop");
-}
+const APP_NAME = Text("MyShop");
+const DEFAULT_DATE_FORMAT = "dd/mm/yyyy";
