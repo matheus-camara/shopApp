@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
         title: APP_NAME.data,
         theme: ThemeData(
             primarySwatch: Colors.purple, accentColor: Colors.deepOrange),
-        home: ProductsOverviewScreen(),
+        initialRoute: ProductsOverviewScreen.routeName,
         routes: appRoutes,
       ),
     );
