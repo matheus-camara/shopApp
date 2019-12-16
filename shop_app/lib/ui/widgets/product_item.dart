@@ -10,6 +10,7 @@ class ProductItem extends StatelessWidget {
     final _theme = Theme.of(context);
     final _navigator = Navigator.of(context);
     final _product = Provider.of<Product>(context, listen: false);
+    final _scaffold = Scaffold.of(context);
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
@@ -37,10 +38,23 @@ class ProductItem extends StatelessWidget {
           trailing: Consumer<Cart>(
             builder: (ctx, cart, _) => IconButton(
               icon: const Icon(Icons.shopping_cart),
-              onPressed: () => cart.add(
-                  productId: _product.id,
-                  price: _product.price,
-                  title: _product.title),
+              onPressed: () {
+                cart.add(
+                    productId: _product.id,
+                    price: _product.price,
+                    title: _product.title);
+
+                _scaffold.hideCurrentSnackBar();
+                _scaffold.showSnackBar(SnackBar(
+                  content: const Text(
+                    "Added to cart!",
+                    textAlign: TextAlign.center,
+                  ),
+                  duration: Duration(seconds: 2),
+                  action: SnackBarAction(
+                      label: "undo", onPressed: () => cart.remove(_product.id)),
+                ));
+              },
               color: _theme.accentColor,
             ),
           ),
