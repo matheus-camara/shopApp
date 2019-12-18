@@ -11,7 +11,7 @@ class ProductsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<Products>(context);
-    final products = showOnlyFavorites ? provider.favorites : provider.products;
+    final products = showOnlyFavorites ? provider.favorites : provider.items;
 
     return GridView.builder(
       padding: const EdgeInsets.all(10),
