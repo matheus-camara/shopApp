@@ -7,6 +7,8 @@ class Products with ChangeNotifier {
 
   List<Product> get items => [..._products];
 
+  int get length => _products.length;
+
   List<Product> get favorites => [...items.where((p) => p.isFavorite)];
 
   void add(Product value) {

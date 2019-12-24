@@ -15,6 +15,8 @@ class Order with ChangeNotifier {
   var _nextId = 1;
 
   List<OrderItem> get items => [..._orders];
+  
+  int get length => _orders.length;
 
   void add(List<CartItem> products, double total) {
     _orders.insert(
