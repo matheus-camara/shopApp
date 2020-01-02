@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shop_app/providers/products.dart';
+import 'package:shop_app/ui/screens/edit_product.dart';
 import 'package:shop_app/ui/widgets/drawer.dart';
 import 'package:shop_app/ui/widgets/user_product.dart';
 
@@ -14,7 +15,7 @@ class UserProductsScreen extends StatelessWidget {
           actions: <Widget>[
             IconButton(
               icon: const Icon(Icons.add),
-              onPressed: () => null,
+              onPressed: () => Navigator.of(context).pushNamed(EditProductScreen.routeName),
             )
           ],
         ),
