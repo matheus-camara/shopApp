@@ -21,8 +21,22 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: APP_NAME.data,
-        theme: ThemeData(
-            primarySwatch: Colors.purple, accentColor: Colors.deepOrange),
+        theme: ThemeData.dark().copyWith(
+            primaryColor: Colors.purple,
+            accentColor: Colors.deepOrange,
+            backgroundColor: Colors.black,
+            floatingActionButtonTheme: FloatingActionButtonThemeData(
+                backgroundColor: Colors.deepOrange),
+            buttonTheme: ButtonThemeData(
+              buttonColor: Colors.deepOrange,
+            ),
+            buttonBarTheme:
+                ButtonBarThemeData(alignment: MainAxisAlignment.center),
+            snackBarTheme: SnackBarThemeData(
+                actionTextColor: Colors.white,
+                backgroundColor: Colors.black,
+                contentTextStyle: TextStyle(color: Colors.white))),
+        themeMode: ThemeMode.dark,
         initialRoute: ProductsOverviewScreen.routeName,
         routes: appRoutes,
       ),

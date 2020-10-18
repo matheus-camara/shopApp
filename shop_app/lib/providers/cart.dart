@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 class CartItem {
-  final int id;
+  final String id;
   final String title;
   final int quantity;
   final double price;
@@ -14,9 +14,9 @@ class CartItem {
 }
 
 class Cart with ChangeNotifier {
-  Map<int, CartItem> _items = {};
+  Map<String, CartItem> _items = {};
 
-  Map<int, CartItem> get items => {..._items};
+  Map<String, CartItem> get items => {..._items};
 
   int get length => _items.length;
 
@@ -26,7 +26,7 @@ class Cart with ChangeNotifier {
     return total;
   }
 
-  void add({int productId, double price, String title}) {
+  void add({String productId, double price, String title}) {
     _items.containsKey(productId)
         ? _items.update(
             productId,
@@ -43,15 +43,20 @@ class Cart with ChangeNotifier {
     notifyListeners();
   }
 
-  void remove(int id) {
-    if(!items.containsKey(id))
-      return;
+  void remove(String id) {
+    if (!items.containsKey(id)) return;
 
-    if(_items[id].quantity > 1)
-      _items.update(id, (current) => CartItem(id: current.id, price: current.price, title: current.title, quantity: current.quantity - 1));
+    if (_items[id].quantity > 1)
+      _items.update(
+          id,
+          (current) => CartItem(
+              id: current.id,
+              price: current.price,
+              title: current.title,
+              quantity: current.quantity - 1));
     else
       _items.remove(id);
-      
+
     notifyListeners();
   }
 

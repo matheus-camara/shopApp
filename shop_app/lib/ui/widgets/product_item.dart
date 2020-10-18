@@ -9,7 +9,7 @@ class ProductItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final _theme = Theme.of(context);
     final _navigator = Navigator.of(context);
-    final _product = Provider.of<Product>(context, listen: false);
+    final _product = Provider.of<Product>(context);
     final _scaffold = Scaffold.of(context);
 
     return ClipRRect(
@@ -52,7 +52,9 @@ class ProductItem extends StatelessWidget {
                   ),
                   duration: Duration(seconds: 2),
                   action: SnackBarAction(
-                      label: "undo", onPressed: () => cart.remove(_product.id)),
+                      textColor: Colors.red,
+                      label: "undo",
+                      onPressed: () => cart.remove(_product.id)),
                 ));
               },
               color: _theme.accentColor,

@@ -12,24 +12,32 @@ class UserProductsScreen extends StatelessWidget {
     return Scaffold(
         appBar: AppBar(
           title: const Text("Your Products"),
-          actions: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () => Navigator.of(context).pushNamed(EditProductScreen.routeName),
-            )
-          ],
         ),
         drawer: AppDrawer(),
+        floatingActionButton: FloatingActionButton(
+          child: const Icon(
+            Icons.add,
+            color: Colors.white,
+          ),
+          onPressed: () =>
+              Navigator.of(context).pushNamed(EditProductScreen.routeName),
+        ),
         body: Padding(
           padding: const EdgeInsets.all(8),
           child: Consumer<Products>(
-            builder: (ctx, products, child) => ListView.separated(
-              separatorBuilder: (_, index) => Divider(),
-              itemCount: products.items.length,
-              itemBuilder: (_, index) => UserProductItem(
-                title: products.items.elementAt(index).title,
-                imageUrl: products.items.elementAt(index).imageUrl,
-              ),
+            builder: (ctx, products, child) => RefreshIndicator(
+              onRefresh: () async => await products.fetch(),
+              child: ListView.separated(
+                  separatorBuilder: (_, index) => Divider(),
+                  itemCount: products.items.length,
+                  itemBuilder: (_, index) {
+                    var found = products.items.elementAt(index);
+                    return UserProductItem(
+                      id: found.id,
+                      title: found.title,
+                      imageUrl: found.imageUrl,
+                    );
+                  }),
             ),
           ),
         ));

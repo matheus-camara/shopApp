@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shop_app/domain/constants.dart';
 import 'package:shop_app/providers/cart.dart';
+import 'package:shop_app/providers/products.dart';
 import 'package:shop_app/ui/screens/cart.dart';
 import 'package:shop_app/ui/widgets/badge.dart';
 import 'package:shop_app/ui/widgets/drawer.dart';
@@ -25,7 +26,7 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
         title: APP_NAME,
         actions: <Widget>[
           PopupMenuButton(
-            icon: const Icon(Icons.more_vert),
+            icon: const Icon(Icons.filter_list_alt),
             onSelected: (FilterOptions selectedValue) => setState(() =>
                 _showOnlyFavorites = selectedValue == FilterOptions.Favorites),
             itemBuilder: (_) => [
@@ -53,9 +54,23 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
         ],
       ),
       drawer: AppDrawer(),
-      body: ProductsGrid(
-        showOnlyFavorites: _showOnlyFavorites,
-      ),
+      body: FutureBuilder(
+          future: Provider.of<Products>(context, listen: false).load(),
+          builder: (context, snapshot) =>
+              snapshot.connectionState == ConnectionState.waiting
+                  ? Center(
+                      child: CircularProgressIndicator(),
+                    )
+                  : Consumer<Products>(
+                      builder: (context, provider, child) => RefreshIndicator(
+                            onRefresh: provider.fetch,
+                            child: ProductsGrid(
+                              products: _showOnlyFavorites
+                                  ? provider.favorites
+                                  : provider.items,
+                              showOnlyFavorites: _showOnlyFavorites,
+                            ),
+                          ))),
     );
   }
 }
