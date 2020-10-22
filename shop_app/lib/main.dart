@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
             snackBarTheme: SnackBarThemeData(
                 actionTextColor: Colors.white,
                 backgroundColor: Colors.black,
-                contentTextStyle: TextStyle(color: Colors.white))),
+                contentTextStyle: const TextStyle(color: Colors.white))),
         themeMode: ThemeMode.dark,
         initialRoute: ProductsOverviewScreen.routeName,
         routes: appRoutes,

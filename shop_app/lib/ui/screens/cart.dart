@@ -25,7 +25,7 @@ class CartScreen extends StatelessWidget {
                             children: <Widget>[
                               const Text(
                                 "Total",
-                                style: TextStyle(fontSize: 20),
+                                style: const TextStyle(fontSize: 20),
                               ),
                               const Spacer(),
                               Chip(
@@ -38,11 +38,13 @@ class CartScreen extends StatelessWidget {
                               Consumer<Order>(
                                 builder: (_, order, child) => FlatButton(
                                   child: const Text("Order"),
-                                  onPressed: () {
-                                    order.add(
-                                        cart.items.values.toList(), cart.total);
-                                    cart.clear();
-                                  },
+                                  onPressed: cart.items.isEmpty
+                                      ? null
+                                      : () {
+                                          order.add(cart.items.values.toList(),
+                                              cart.total);
+                                          cart.clear();
+                                        },
                                   textColor: _theme.primaryColor,
                                 ),
                               ),

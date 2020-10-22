@@ -1,6 +1,12 @@
 import 'package:flutter/foundation.dart';
+import 'package:shop_app/appSettings.dart';
+import 'package:shop_app/services/services.dart';
+import 'package:shop_app/utils/extensions.dart';
 
 class Product with ChangeNotifier {
+  static const ProductService _service =
+      const ProductService(AppSettings.serverAdress);
+
   final String id;
   final String title;
   final String description;
@@ -47,7 +53,17 @@ class Product with ChangeNotifier {
         this.isFavorite = false;
 
   set favorite(bool favorite) {
+    final oldStatus = isFavorite;
     isFavorite = favorite;
+
+    _service.patchMap(id: this.id, value: {"isFavorite": isFavorite}).then(
+        (result) {
+      if (result.isNull) {
+        isFavorite = oldStatus;
+        notifyListeners();
+      }
+    });
+
     notifyListeners();
   }
 }

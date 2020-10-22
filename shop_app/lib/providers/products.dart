@@ -5,8 +5,7 @@ import 'package:shop_app/services/services.dart' show ProductService;
 import 'package:shop_app/utils/extensions.dart';
 
 class Products with ChangeNotifier {
-  static const ProductService _service =
-      const ProductService(AppSettings.serverAdress);
+  static const _service = const ProductService(AppSettings.serverAdress);
 
   List<Product> _products = [];
 

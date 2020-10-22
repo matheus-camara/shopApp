@@ -32,7 +32,7 @@ class _OrderItemState extends State<OrderItem> {
                 padding: const EdgeInsets.all(12),
                 label: Text(
                   "\$${widget.order.amount}",
-                  style: TextStyle(color: Colors.white, fontSize: 14),
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
                 ),
               ),
             ),
@@ -47,7 +47,7 @@ class _OrderItemState extends State<OrderItem> {
           if (_expanded)
             Container(
               padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 15),
-              height: min(widget.order.products.length * 20.0 + 10.0, 120),
+              height: min(widget.order.products.length * 30.0 + 20.0, 600),
               child: ListView(
                 children: widget.order.products
                     .map((p) => Column(

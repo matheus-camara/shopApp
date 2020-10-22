@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:shop_app/providers/order.dart';
 import 'package:shop_app/providers/product.dart';
 
 abstract class ServiceBase {
@@ -34,6 +35,39 @@ abstract class ServiceBase {
   }
 }
 
+class OrderService extends ServiceBase {
+  const OrderService(String baseUrl) : super(baseUrl);
+
+  Map<String, dynamic> orderToMap(OrderItem order) => {
+        "amount": order.amount,
+        "date": DateTime.now().toUtc().toString(),
+        "products": order.products
+            .map((e) => {
+                  "id": e.id,
+                  "price": e.price,
+                  "quantity": e.quantity,
+                  "title": e.title
+                })
+            .toList()
+      };
+
+  Future<OrderItem> post({@required OrderItem orderItem}) async {
+    try {
+      var response =
+          await this._post(url: "orders.json", data: orderToMap(orderItem));
+
+      if (response.statusCode == HttpStatus.ok) {
+        var order = OrderItem.fromJson(json.decode(response.body));
+        return order;
+      } else {
+        return null;
+      }
+    } catch (err) {
+      return null;
+    }
+  }
+}
+
 class ProductService extends ServiceBase {
   const ProductService(String baseUrl) : super(baseUrl);
   Map<String, dynamic> productToMap(Product product) => {
@@ -61,8 +95,24 @@ class ProductService extends ServiceBase {
 
   Future<Product> patch({@required Product product}) async {
     try {
-      var response = await this._patch(
-          url: "products/${product.id}.json", data: productToMap(product));
+      var response = await this
+          ._patch(url: "products/${product.id}", data: productToMap(product));
+
+      if (response.statusCode == HttpStatus.ok) {
+        var product = Product.fromJson(json.decode(response.body));
+        return product;
+      } else {
+        return null;
+      }
+    } catch (err) {
+      return null;
+    }
+  }
+
+  Future<Product> patchMap(
+      {@required String id, @required Map<String, dynamic> value}) async {
+    try {
+      var response = await this._patch(url: "products/$id.json", data: value);
 
       if (response.statusCode == HttpStatus.ok) {
         var product = Product.fromJson(json.decode(response.body));
