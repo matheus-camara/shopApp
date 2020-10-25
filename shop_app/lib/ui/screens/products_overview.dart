@@ -6,6 +6,7 @@ import 'package:shop_app/providers/products.dart';
 import 'package:shop_app/ui/screens/cart.dart';
 import 'package:shop_app/ui/widgets/badge.dart';
 import 'package:shop_app/ui/widgets/drawer.dart';
+import 'package:shop_app/ui/widgets/future_builder_with_loader.dart';
 import 'package:shop_app/ui/widgets/products_grid.dart';
 
 enum FilterOptions { Favorites, All }
@@ -18,6 +19,16 @@ class ProductsOverviewScreen extends StatefulWidget {
 
 class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
   var _showOnlyFavorites = false;
+  Future _fetchProducts;
+
+  Future _getFetchProductsFuture() =>
+      Provider.of<Products>(context, listen: false).load();
+
+  @override
+  void initState() {
+    _fetchProducts = _getFetchProductsFuture();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,23 +65,18 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
         ],
       ),
       drawer: AppDrawer(),
-      body: FutureBuilder(
-          future: Provider.of<Products>(context, listen: false).load(),
-          builder: (context, snapshot) =>
-              snapshot.connectionState == ConnectionState.waiting
-                  ? Center(
-                      child: CircularProgressIndicator(),
-                    )
-                  : Consumer<Products>(
-                      builder: (context, provider, child) => RefreshIndicator(
-                            onRefresh: provider.fetch,
-                            child: ProductsGrid(
-                              products: _showOnlyFavorites
-                                  ? provider.favorites
-                                  : provider.items,
-                              showOnlyFavorites: _showOnlyFavorites,
-                            ),
-                          ))),
+      body: FutureBuilderWithLoader(
+          future: _fetchProducts,
+          builder: (context, data) => Consumer<Products>(
+              builder: (context, provider, child) => RefreshIndicator(
+                    onRefresh: provider.fetch,
+                    child: ProductsGrid(
+                      products: _showOnlyFavorites
+                          ? provider.favorites
+                          : provider.items,
+                      showOnlyFavorites: _showOnlyFavorites,
+                    ),
+                  ))),
     );
   }
 }

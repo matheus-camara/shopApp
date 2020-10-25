@@ -66,6 +66,21 @@ class OrderService extends ServiceBase {
       return null;
     }
   }
+
+  Future<List<OrderItem>> get({int id, Map<String, String> params}) async {
+    var response =
+        await this._get(url: id != null ? "orders/$id.json" : "orders.json");
+
+    print(response.body);
+
+    List<OrderItem> result = [];
+    if (response.statusCode == HttpStatus.ok) {
+      (json.decode(response.body) as Map<String, dynamic>).forEach(
+          (key, value) => result.add(OrderItem.fromJson(value, id: key)));
+    }
+
+    return result;
+  }
 }
 
 class ProductService extends ServiceBase {
@@ -125,9 +140,8 @@ class ProductService extends ServiceBase {
     }
   }
 
-  Future<List<Product>> get({int id, Map<String, String> params}) async {
-    var response = await this
-        ._get(url: id != null ? "products/$id.json" : "products.json");
+  Future<List<Product>> get({Map<String, String> params}) async {
+    var response = await this._get(url: "products.json");
 
     print(response.body);
 
@@ -135,6 +149,18 @@ class ProductService extends ServiceBase {
     if (response.statusCode == HttpStatus.ok) {
       (json.decode(response.body) as Map<String, dynamic>).forEach(
           (key, value) => result.add(Product.fromJson(value, id: key)));
+    }
+
+    return result;
+  }
+
+  Future<Product> fetch(String id) async {
+    var response = await this._get(url: "products/$id.json");
+
+    Product result;
+
+    if (response.statusCode == HttpStatus.ok) {
+      result = Product.fromJson(json.decode(response.body), id: id);
     }
 
     return result;

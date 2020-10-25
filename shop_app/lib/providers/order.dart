@@ -15,11 +15,9 @@ class OrderItem {
   OrderItem.fromJson(Map<String, dynamic> json, {String id})
       : this.id = id ?? json["name"],
         amount = json["amount"],
-        date = json["date"],
-        products = ((json["products"] as Map<String, dynamic> ?? {})
-            .map(
-                (key, value) => MapEntry(id, CartItem.fromJson(value, id: key)))
-            .values
+        date = json["date"] == null ? null : DateTime.parse(json["date"]),
+        products = ((json["products"] as List<dynamic> ?? {})
+            .map((value) => CartItem.fromJson(value, id: value["id"]))
             .toList());
 
   OrderItem.copyWith(OrderItem value, {String id})
@@ -36,7 +34,17 @@ class Order with ChangeNotifier {
 
   List<OrderItem> get items => [..._orders];
 
+  List<OrderItem> itemsOrderedByDateDesc() {
+    var result = items;
+    result.sort((x, y) => y.date.compareTo(x.date));
+    return result;
+  }
+
   int get length => _orders.length;
+
+  Future<void> load() async {
+    if (_orders.isEmpty) _orders.addAll((await _service.get()));
+  }
 
   Future<OrderItem> add(List<CartItem> products, double total) async {
     var order = OrderItem(

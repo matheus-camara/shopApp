@@ -49,6 +49,11 @@ class Cart with ChangeNotifier {
     notifyListeners();
   }
 
+  void addAll({Map<String, CartItem> values}) {
+    _items.addAll(values);
+    notifyListeners();
+  }
+
   void remove(String id) {
     if (!items.containsKey(id)) return;
 

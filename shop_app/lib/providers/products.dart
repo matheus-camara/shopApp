@@ -39,12 +39,12 @@ class Products with ChangeNotifier {
   }
 
   Future<Product> update(Product value) async {
-    var found = _products.firstWhere((element) => element.id == value.id);
-    if (found.isNull) return null;
+    var foundIndex = _products.indexWhere((element) => element.id == value.id);
+    if (foundIndex < 0) return null;
 
-    _products.removeWhere((element) => element.id == value.id);
+    var item = _products.removeAt(foundIndex);
 
-    var updated = Product.copyWith(found,
+    var updated = Product.copyWith(item,
         id: value.id,
         description: value.description,
         imageUrl: value.imageUrl,
@@ -64,7 +64,7 @@ class Products with ChangeNotifier {
     if (_products.isEmpty) _products.addAll((await _service.get()));
   }
 
-  Future<void> fetch() async {
+  Future<void> fetch({String id}) async {
     _products = await _service.get();
     notifyListeners();
   }

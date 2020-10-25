@@ -4,6 +4,7 @@ import 'package:shop_app/domain/constants.dart';
 import 'package:shop_app/providers/cart.dart' show Cart;
 import 'package:shop_app/providers/order.dart';
 import 'package:shop_app/ui/widgets/cart_item.dart';
+import 'package:shop_app/ui/widgets/loading_button.dart';
 
 class CartScreen extends StatelessWidget {
   static const routeName = "/cart";
@@ -36,14 +37,20 @@ class CartScreen extends StatelessWidget {
                                 ),
                               ),
                               Consumer<Order>(
-                                builder: (_, order, child) => FlatButton(
+                                builder: (_, order, child) => LoadingButton(
                                   child: const Text("Order"),
                                   onPressed: cart.items.isEmpty
                                       ? null
-                                      : () {
-                                          order.add(cart.items.values.toList(),
+                                      : () async {
+                                          var future = order.add(
+                                              cart.items.values.toList(),
                                               cart.total);
+
+                                          var cartItemsCopy = cart.items;
                                           cart.clear();
+
+                                          if ((await future) == null)
+                                            cart.addAll(values: cartItemsCopy);
                                         },
                                   textColor: _theme.primaryColor,
                                 ),

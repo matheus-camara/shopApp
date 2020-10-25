@@ -5,17 +5,10 @@ import 'package:intl/intl.dart';
 import 'package:shop_app/domain/constants.dart';
 import 'package:shop_app/providers/order.dart' as providers;
 
-class OrderItem extends StatefulWidget {
+class OrderItem extends StatelessWidget {
   final providers.OrderItem order;
 
   const OrderItem({Key key, this.order}) : super(key: key);
-
-  @override
-  _OrderItemState createState() => _OrderItemState();
-}
-
-class _OrderItemState extends State<OrderItem> {
-  var _expanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -23,46 +16,43 @@ class _OrderItemState extends State<OrderItem> {
       margin: const EdgeInsets.all(10),
       child: Column(
         children: <Widget>[
-          ListTile(
-            title: Container(
-              padding: const EdgeInsets.all(5),
-              alignment: Alignment.topLeft,
-              child: Chip(
-                backgroundColor: Theme.of(context).primaryColor,
-                padding: const EdgeInsets.all(12),
-                label: Text(
-                  "\$${widget.order.amount}",
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
+          ExpansionTile(
+              title: Container(
+                padding: const EdgeInsets.all(5),
+                alignment: Alignment.topLeft,
+                child: Chip(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  padding: const EdgeInsets.all(16),
+                  label: Text(
+                    "\$${order.amount}",
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                  ),
                 ),
               ),
-            ),
-            subtitle: Text(DateFormat("$DEFAULT_DATE_FORMAT hh:mm")
-                .format(widget.order.date)
-                .toString()),
-            trailing: IconButton(
-              icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
-              onPressed: () => setState(() => _expanded = !_expanded),
-            ),
-          ),
-          if (_expanded)
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 15),
-              height: min(widget.order.products.length * 30.0 + 20.0, 600),
-              child: ListView(
-                children: widget.order.products
-                    .map((p) => Column(
+              subtitle: Text(DateFormat("$DATE_FORMAT_WITH_WEEKDAY hh:mm")
+                  .format(order.date)),
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 4, horizontal: 15),
+                  height: min(order.products.length * 30.0 + 20.0, 120),
+                  child: ListView.builder(
+                      itemCount: order.products.length,
+                      itemBuilder: (ctx, index) {
+                        final orderItem = order.products.elementAt(index);
+                        return Column(
                           children: <Widget>[
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: <Widget>[
                                 Text(
-                                  p.title,
+                                  orderItem.title,
                                   style: const TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold),
                                 ),
                                 Text(
-                                  "${p.quantity}x \$${p.price}",
+                                  "${orderItem.quantity}x \$${orderItem.price}",
                                   style: const TextStyle(
                                       fontSize: 18, color: Colors.grey),
                                 ),
@@ -70,10 +60,10 @@ class _OrderItemState extends State<OrderItem> {
                             ),
                             const Divider()
                           ],
-                        ))
-                    .toList(),
-              ),
-            )
+                        );
+                      }),
+                )
+              ]),
         ],
       ),
     );

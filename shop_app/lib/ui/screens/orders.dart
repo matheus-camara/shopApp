@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:shop_app/domain/constants.dart';
 import 'package:shop_app/providers/order.dart' show Order;
 import 'package:shop_app/ui/widgets/drawer.dart';
+import 'package:shop_app/ui/widgets/future_builder_with_loader.dart';
 import 'package:shop_app/ui/widgets/order.dart';
 
 class OrdersScreen extends StatelessWidget {
@@ -10,19 +11,22 @@ class OrdersScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<Order>(context);
-    final orders = provider.items;
     return Scaffold(
-      appBar: AppBar(
-        title: APP_NAME,
-      ),
-      drawer: AppDrawer(),
-      body: ListView.builder(
-        itemCount: orders.length,
-        itemBuilder: (ctx, i) => OrderItem(
-          order: orders.elementAt(i),
+        appBar: AppBar(
+          title: APP_NAME,
         ),
-      ),
-    );
+        drawer: AppDrawer(),
+        body: FutureBuilderWithLoader(
+            future: Provider.of<Order>(context, listen: false).load(),
+            builder: (context, snapshot) =>
+                Consumer<Order>(builder: (context, provider, child) {
+                  var items = provider.itemsOrderedByDateDesc();
+                  return ListView.builder(
+                    itemCount: items.length,
+                    itemBuilder: (ctx, i) => OrderItem(
+                      order: items.elementAt(i),
+                    ),
+                  );
+                })));
   }
 }
