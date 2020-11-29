@@ -5,7 +5,11 @@ import 'package:shop_app/services/services.dart' show ProductService;
 import 'package:shop_app/utils/extensions.dart';
 
 class Products with ChangeNotifier {
-  static const _service = const ProductService(AppSettings.serverAdress);
+  ProductService get service => ProductService(AppSettings.serverAdress, token);
+
+  String token;
+
+  Products(this.token);
 
   List<Product> _products = [];
 
@@ -23,12 +27,12 @@ class Products with ChangeNotifier {
     if (found.isNull) return;
 
     _products.remove(found);
-    await _service.delete(product: found);
+    await service.delete(product: found);
     notifyListeners();
   }
 
   Future<Product> add(Product value) async {
-    var result = await _service.post(product: value);
+    var result = await service.post(product: value);
 
     if (result.isNull) return null;
 
@@ -52,7 +56,7 @@ class Products with ChangeNotifier {
         price: value.price,
         title: value.title);
 
-    var result = await _service.patch(product: updated);
+    var result = await service.patch(product: updated);
     if (result.isNull) return null;
 
     _products.add(result);
@@ -61,11 +65,15 @@ class Products with ChangeNotifier {
   }
 
   Future<void> load() async {
-    if (_products.isEmpty) _products.addAll((await _service.get()));
+    if (_products.isEmpty) _products.addAll((await service.get()));
   }
 
   Future<void> fetch({String id}) async {
-    _products = await _service.get();
+    _products = await service.get();
     notifyListeners();
+  }
+
+  Future<Product> fetchOne(String id) async {
+    return await service.fetch(id);
   }
 }

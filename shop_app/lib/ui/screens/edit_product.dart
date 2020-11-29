@@ -4,6 +4,7 @@ import 'package:shop_app/domain/constants.dart';
 import 'package:shop_app/providers/product.dart';
 import 'package:shop_app/providers/products.dart';
 import 'package:shop_app/mixins/loading.dart';
+import 'package:shop_app/ui/screens/user_products.dart';
 import 'package:shop_app/ui/widgets/add_edit_product.dart';
 import 'package:shop_app/utils/extensions.dart';
 
@@ -41,11 +42,11 @@ class _EditProductScreenState extends State<EditProductScreen>
     }
   }
 
-  void _saveForm(Product product) async {
+  void _saveForm() async {
     _form.currentState.save();
     var products = Provider.of<Products>(context, listen: false);
     var result = await withLoader<Product>(
-        product.id == null ? products.add(product) : products.update(product));
+        _edited.id == null ? products.add(_edited) : products.update(_edited));
 
     if (result.isNull) {
       showDialog(
@@ -61,7 +62,7 @@ class _EditProductScreenState extends State<EditProductScreen>
         ),
       );
     }
-    Navigator.of(context).pop();
+    Navigator.of(context).pushNamed(UserProductsScreen.routeName);
   }
 
   @override
@@ -77,7 +78,7 @@ class _EditProductScreenState extends State<EditProductScreen>
           Icons.save,
           color: Colors.white,
         ),
-        onPressed: () => _saveForm(_edited),
+        onPressed: _saveForm,
       ),
       body: isLoading
           ? Center(

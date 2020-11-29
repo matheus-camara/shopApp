@@ -28,7 +28,9 @@ class OrderItem {
 }
 
 class Order with ChangeNotifier {
-  static const _service = const OrderService(AppSettings.serverAdress);
+  String _token;
+
+  Order(this._token);
 
   List<OrderItem> _orders = [];
 
@@ -40,17 +42,24 @@ class Order with ChangeNotifier {
     return result;
   }
 
+  OrderService get service => OrderService(AppSettings.serverAdress, _token);
+
   int get length => _orders.length;
 
   Future<void> load() async {
-    if (_orders.isEmpty) _orders.addAll((await _service.get()));
+    if (_orders.isEmpty) _orders.addAll((await service.get()));
+  }
+
+  Future<void> fetch() async {
+    _orders = await service.get();
+    notifyListeners();
   }
 
   Future<OrderItem> add(List<CartItem> products, double total) async {
     var order = OrderItem(
         id: null, amount: total, products: products, date: DateTime.now());
 
-    var result = await _service.post(orderItem: order);
+    var result = await service.post(orderItem: order);
 
     if (result.isNull) return null;
 
@@ -59,5 +68,13 @@ class Order with ChangeNotifier {
     _orders.add(order);
     notifyListeners();
     return order;
+  }
+
+  Future<bool> delete(String id) async {
+    _orders.removeWhere((element) => element.id == id);
+
+    var response = await service.delete(id: id);
+
+    return response.isNotNull;
   }
 }

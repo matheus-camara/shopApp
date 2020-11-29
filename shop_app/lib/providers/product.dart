@@ -4,15 +4,13 @@ import 'package:shop_app/services/services.dart';
 import 'package:shop_app/utils/extensions.dart';
 
 class Product with ChangeNotifier {
-  static const ProductService _service =
-      const ProductService(AppSettings.serverAdress);
-
   final String id;
-  final String title;
-  final String description;
-  final double price;
-  final String imageUrl;
+  String title;
+  String description;
+  double price;
+  String imageUrl;
   bool isFavorite;
+  String _token;
 
   Product(
       {@required this.id,
@@ -52,11 +50,19 @@ class Product with ChangeNotifier {
         this.title = "",
         this.isFavorite = false;
 
+  ProductService get service =>
+      ProductService(AppSettings.serverAdress, _token);
+
+  void setTitle(String title) => this.title = title;
+  void setDescription(String description) => this.description = description;
+  void setImageUrl(String imageUrl) => this.imageUrl = imageUrl;
+  void setPrice(double price) => this.price = price;
+
   set favorite(bool favorite) {
     final oldStatus = isFavorite;
     isFavorite = favorite;
 
-    _service.patchMap(id: this.id, value: {"isFavorite": isFavorite}).then(
+    service.patchMap(id: this.id, value: {"isFavorite": isFavorite}).then(
         (result) {
       if (result.isNull) {
         isFavorite = oldStatus;

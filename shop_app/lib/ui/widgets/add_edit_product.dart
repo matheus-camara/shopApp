@@ -68,8 +68,7 @@ class _AddOrEditProductState extends State<AddOrEditProduct>
                 initialValue: product.title,
                 onFieldSubmitted: (_) =>
                     FocusScope.of(context).requestFocus(_priceFocusNode),
-                onSaved: (value) =>
-                    product = Product.copyWith(product, title: value),
+                onSaved: (value) => product.setTitle(value),
               ),
               TextFormField(
                 decoration: const InputDecoration(labelText: "Price"),
@@ -81,8 +80,7 @@ class _AddOrEditProductState extends State<AddOrEditProduct>
                     product.price == 0 ? "" : product.price.toString(),
                 onFieldSubmitted: (_) =>
                     FocusScope.of(context).requestFocus(_descriptionFocusNode),
-                onSaved: (value) => product =
-                    Product.copyWith(product, price: value.toDouble()),
+                onSaved: (value) => product.setPrice(value.toDouble()),
               ),
               TextFormField(
                 decoration: const InputDecoration(labelText: "Description"),
@@ -91,8 +89,7 @@ class _AddOrEditProductState extends State<AddOrEditProduct>
                 keyboardType: TextInputType.multiline,
                 initialValue: product.description,
                 focusNode: _descriptionFocusNode,
-                onSaved: (value) =>
-                    product = Product.copyWith(product, description: value),
+                onSaved: (value) => product.setDescription(value),
               ),
               TextFormField(
                 decoration: InputDecoration(labelText: "Image Url"),
@@ -101,8 +98,7 @@ class _AddOrEditProductState extends State<AddOrEditProduct>
                 textInputAction: TextInputAction.done,
                 controller: _imageUrlController,
                 focusNode: _imageUrlFocusNode,
-                onSaved: (value) =>
-                    product = Product.copyWith(product, imageUrl: value),
+                onSaved: (value) => product.setImageUrl(value),
               ),
               Container(
                 width: MediaQuery.of(context).size.width - 20,

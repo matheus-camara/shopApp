@@ -2,17 +2,19 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:shop_app/domain/user.dart';
 import 'package:shop_app/providers/order.dart';
 import 'package:shop_app/providers/product.dart';
 
 abstract class ServiceBase {
   final String _baseUrl;
+  final String _token;
 
   static const Map<String, String> headers = {
     "Content-Type": "application/json"
   };
 
-  const ServiceBase(this._baseUrl);
+  ServiceBase(this._baseUrl, this._token);
 
   Future<http.Response> _post<T>({String url, @required T data}) =>
       http.post(_routeBuilder(url), body: json.encode(data), headers: headers);
@@ -27,16 +29,26 @@ abstract class ServiceBase {
       http.get(_routeBuilder(url, params: params));
 
   String _routeBuilder(String url, {Map<String, String> params}) {
+    var urlFinal = _baseUrl;
+
+    if (url != null) urlFinal += "/$url";
+
+    if (_token != null && params == null) urlFinal += "?auth=$_token";
+
     if (params != null && params.isNotEmpty) {
+      if (_token != null) {
+        params['auth'] = _token;
+      }
+
       return Uri(path: "$_baseUrl/$url", queryParameters: params).toString();
     }
 
-    return "$_baseUrl/$url";
+    return urlFinal;
   }
 }
 
 class OrderService extends ServiceBase {
-  const OrderService(String baseUrl) : super(baseUrl);
+  OrderService(String baseUrl, String token) : super(baseUrl, token);
 
   Map<String, dynamic> orderToMap(OrderItem order) => {
         "amount": order.amount,
@@ -67,6 +79,20 @@ class OrderService extends ServiceBase {
     }
   }
 
+  Future<OrderItem> delete({@required id}) async {
+    try {
+      var response = await _delete(url: "orders/$id.json");
+
+      if (response.statusCode == HttpStatus.ok) {
+        return OrderItem.fromJson({}, id: id);
+      }
+
+      return null;
+    } catch (err) {
+      return null;
+    }
+  }
+
   Future<List<OrderItem>> get({int id, Map<String, String> params}) async {
     var response =
         await this._get(url: id != null ? "orders/$id.json" : "orders.json");
@@ -84,7 +110,7 @@ class OrderService extends ServiceBase {
 }
 
 class ProductService extends ServiceBase {
-  const ProductService(String baseUrl) : super(baseUrl);
+  ProductService(String baseUrl, String token) : super(baseUrl, token);
   Map<String, dynamic> productToMap(Product product) => {
         "title": product.title,
         "price": product.price,
@@ -92,10 +118,11 @@ class ProductService extends ServiceBase {
         "imageUrl": product.imageUrl,
       };
 
-  Future<Product> post({@required Product product}) async {
+  Future<Product> post({@required Product product, String token}) async {
     try {
-      var response =
-          await this._post(url: "products.json", data: productToMap(product));
+      var response = await this._post(
+          url: token == null ? "products.json" : "products.json?Auth=$token",
+          data: productToMap(product));
 
       if (response.statusCode == HttpStatus.ok) {
         var product = Product.fromJson(json.decode(response.body));
@@ -108,10 +135,10 @@ class ProductService extends ServiceBase {
     }
   }
 
-  Future<Product> patch({@required Product product}) async {
+  Future<Product> patch({@required Product product, String token}) async {
     try {
-      var response = await this
-          ._patch(url: "products/${product.id}", data: productToMap(product));
+      var response = await this._patch(
+          url: "products/${product.id}.json", data: productToMap(product));
 
       if (response.statusCode == HttpStatus.ok) {
         var product = Product.fromJson(json.decode(response.body));
@@ -143,8 +170,6 @@ class ProductService extends ServiceBase {
   Future<List<Product>> get({Map<String, String> params}) async {
     var response = await this._get(url: "products.json");
 
-    print(response.body);
-
     List<Product> result = [];
     if (response.statusCode == HttpStatus.ok) {
       (json.decode(response.body) as Map<String, dynamic>).forEach(
@@ -173,5 +198,49 @@ class ProductService extends ServiceBase {
       return product;
     } else
       return null;
+  }
+}
+
+class AuthService extends ServiceBase {
+  AuthService(String baseUrl) : super(baseUrl, null);
+
+  Future<User> login(String email, String password) async {
+    try {
+      final response = await this._post(data: {
+        "email": email,
+        "password": password,
+        "returnSecureToken": true
+      });
+
+      final responseData = json.decode(response.body);
+      if (responseData['error'] != null) {
+        throw HttpException(responseData['error']['message']);
+      }
+
+      return response.statusCode == HttpStatus.ok
+          ? User.fromJson(responseData)
+          : null;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  Future<bool> signUp(String email, String password) async {
+    try {
+      final response = await this._post(data: {
+        "email": email,
+        "password": password,
+        "returnSecureToken": true
+      });
+
+      final responseData = json.decode(response.body);
+      if (responseData['error'] != null) {
+        throw HttpException(responseData['error']['message']);
+      }
+
+      return response.statusCode == HttpStatus.ok;
+    } catch (err) {
+      return false;
+    }
   }
 }

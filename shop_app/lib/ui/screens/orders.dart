@@ -21,12 +21,19 @@ class OrdersScreen extends StatelessWidget {
             builder: (context, snapshot) =>
                 Consumer<Order>(builder: (context, provider, child) {
                   var items = provider.itemsOrderedByDateDesc();
-                  return ListView.builder(
-                    itemCount: items.length,
-                    itemBuilder: (ctx, i) => OrderItem(
-                      order: items.elementAt(i),
-                    ),
-                  );
+                  return RefreshIndicator(
+                      child: ListView.builder(
+                        itemCount: items.length,
+                        itemBuilder: (ctx, i) => Dismissible(
+                          key: Key(items.elementAt(i).id),
+                          confirmDismiss: (direction) =>
+                              provider.delete(items.elementAt(i).id),
+                          child: OrderItem(
+                            order: items.elementAt(i),
+                          ),
+                        ),
+                      ),
+                      onRefresh: provider.fetch);
                 })));
   }
 }
