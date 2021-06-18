@@ -1,79 +1,178 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:shop_app/appSettings.dart';
-import 'package:shop_app/providers/product.dart';
-import 'package:shop_app/services/services.dart' show ProductService;
-import 'package:shop_app/utils/extensions.dart';
+import 'package:http/http.dart' as http;
+
+import '../models/http_exception.dart';
+import './product.dart';
 
 class Products with ChangeNotifier {
-  ProductService get service => ProductService(AppSettings.serverAdress, token);
+  List<Product> _items = [
+    // Product(
+    //   id: 'p1',
+    //   title: 'Red Shirt',
+    //   description: 'A red shirt - it is pretty red!',
+    //   price: 29.99,
+    //   imageUrl:
+    //       'https://cdn.pixabay.com/photo/2016/10/02/22/17/red-t-shirt-1710578_1280.jpg',
+    // ),
+    // Product(
+    //   id: 'p2',
+    //   title: 'Trousers',
+    //   description: 'A nice pair of trousers.',
+    //   price: 59.99,
+    //   imageUrl:
+    //       'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Trousers%2C_dress_%28AM_1960.022-8%29.jpg/512px-Trousers%2C_dress_%28AM_1960.022-8%29.jpg',
+    // ),
+    // Product(
+    //   id: 'p3',
+    //   title: 'Yellow Scarf',
+    //   description: 'Warm and cozy - exactly what you need for the winter.',
+    //   price: 19.99,
+    //   imageUrl:
+    //       'https://live.staticflickr.com/4043/4438260868_cc79b3369d_z.jpg',
+    // ),
+    // Product(
+    //   id: 'p4',
+    //   title: 'A Pan',
+    //   description: 'Prepare any meal you want.',
+    //   price: 49.99,
+    //   imageUrl:
+    //       'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Cast-Iron-Pan.jpg/1024px-Cast-Iron-Pan.jpg',
+    // ),
+  ];
+  // var _showFavoritesOnly = false;
+  final String authToken;
+  final String userId;
 
-  String token;
+  Products(this.authToken, this.userId, this._items);
 
-  Products(this.token);
+  List<Product> get items {
+    // if (_showFavoritesOnly) {
+    //   return _items.where((prodItem) => prodItem.isFavorite).toList();
+    // }
+    return [..._items];
+  }
 
-  List<Product> _products = [];
+  List<Product> get favoriteItems {
+    return _items.where((prodItem) => prodItem.isFavorite).toList();
+  }
 
-  List<Product> get items => [..._products];
+  Product findById(String id) {
+    return _items.firstWhere((prod) => prod.id == id);
+  }
 
-  int get length => _products.length;
+  Future<void> fetchAndSetProducts([bool filterByUser = false]) async {
+    var params = queryStringParams();
 
-  List<Product> get favorites => [...items.where((p) => p.isFavorite)];
+    if (filterByUser) {
+      params['orderBy'] = 'creatorId';
+      params['equalTo'] = userId;
+    }
 
-  Product find(String id) => items.firstWhere((p) => p.id == id);
+    var url = Uri.https(
+        'flutter-shop-app-4179b.firebaseio.com', '/products.json', params);
 
-  Future<void> delete(String id) async {
-    var found = find(id);
+    try {
+      final response = await http.get(url);
 
-    if (found.isNull) return;
+      if (response.statusCode == HttpStatus.notFound) return;
+      final extractedData = json.decode(response.body) as Map<String, dynamic>;
+      if (extractedData == null) {
+        return;
+      }
+      url = Uri.https('flutter-shop-app-4179b.firebaseio.com',
+          '/userFavorites/$userId.json', queryStringParams());
+      final favoriteResponse = await http.get(url);
+      if (response.statusCode == HttpStatus.ok) {
+        final favoriteData = json.decode(favoriteResponse.body);
+        final List<Product> loadedProducts = [];
+        extractedData.forEach((prodId, prodData) {
+          loadedProducts.add(Product(
+            id: prodId,
+            title: prodData['title'],
+            description: prodData['description'],
+            price: prodData['price'],
+            isFavorite:
+                favoriteData == null ? false : favoriteData[prodId] ?? false,
+            imageUrl: prodData['imageUrl'],
+          ));
+        });
+        _items = loadedProducts;
+        notifyListeners();
+      }
+    } catch (error) {
+      throw (error);
+    }
+  }
 
-    _products.remove(found);
-    await service.delete(product: found);
+  Future<void> addProduct(Product product) async {
+    final url = Uri.https('flutter-shop-app-4179b.firebaseio.com',
+        '/products.json', queryStringParams());
+    try {
+      final response = await http.post(
+        url,
+        body: json.encode({
+          'title': product.title,
+          'description': product.description,
+          'imageUrl': product.imageUrl,
+          'price': product.price,
+          'creatorId': userId,
+        }),
+      );
+      final newProduct = Product(
+        title: product.title,
+        description: product.description,
+        price: product.price,
+        imageUrl: product.imageUrl,
+        id: json.decode(response.body)['name'],
+      );
+      _items.add(newProduct);
+      // _items.insert(0, newProduct); // at the start of the list
+      notifyListeners();
+    } catch (error) {
+      print(error);
+      throw error;
+    }
+  }
+
+  Future<void> updateProduct(String id, Product newProduct) async {
+    final prodIndex = _items.indexWhere((prod) => prod.id == id);
+    if (prodIndex >= 0) {
+      final url = Uri.https('flutter-shop-app-4179b.firebaseio.com',
+          '/products/$id.json', queryStringParams());
+      await http.patch(url,
+          body: json.encode({
+            'title': newProduct.title,
+            'description': newProduct.description,
+            'imageUrl': newProduct.imageUrl,
+            'price': newProduct.price
+          }));
+      _items[prodIndex] = newProduct;
+      notifyListeners();
+    } else {
+      print('...');
+    }
+  }
+
+  Future<void> deleteProduct(String id) async {
+    final url = Uri.https('flutter-shop-app-4179b.firebaseio.com',
+        '/products/$id.json', queryStringParams());
+    final existingProductIndex = _items.indexWhere((prod) => prod.id == id);
+    var existingProduct = _items[existingProductIndex];
+    _items.removeAt(existingProductIndex);
     notifyListeners();
+    final response = await http.delete(url);
+    if (response.statusCode >= 400) {
+      _items.insert(existingProductIndex, existingProduct);
+      notifyListeners();
+      throw HttpException('Could not delete product.');
+    }
+    existingProduct = null;
   }
 
-  Future<Product> add(Product value) async {
-    var result = await service.post(product: value);
-
-    if (result.isNull) return null;
-
-    _products.add(Product.copyWith(value, id: result.id));
-    notifyListeners();
-
-    return result;
-  }
-
-  Future<Product> update(Product value) async {
-    var foundIndex = _products.indexWhere((element) => element.id == value.id);
-    if (foundIndex < 0) return null;
-
-    var item = _products.removeAt(foundIndex);
-
-    var updated = Product.copyWith(item,
-        id: value.id,
-        description: value.description,
-        imageUrl: value.imageUrl,
-        isFavorite: value.isFavorite,
-        price: value.price,
-        title: value.title);
-
-    var result = await service.patch(product: updated);
-    if (result.isNull) return null;
-
-    _products.add(result);
-    notifyListeners();
-    return result;
-  }
-
-  Future<void> load() async {
-    if (_products.isEmpty) _products.addAll((await service.get()));
-  }
-
-  Future<void> fetch({String id}) async {
-    _products = await service.get();
-    notifyListeners();
-  }
-
-  Future<Product> fetchOne(String id) async {
-    return await service.fetch(id);
+  Map<String, Object> queryStringParams() {
+    return {'auth': authToken};
   }
 }
